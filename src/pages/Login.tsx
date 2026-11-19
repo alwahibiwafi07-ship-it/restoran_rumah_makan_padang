@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon, LockSimpleIcon, WarningCircleIcon, SpinnerIcon } from "@phosphor-icons/react";
+import { FieldError } from "@/components/shared/Field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -129,13 +130,5 @@ export default function Login() {
                 </form>
             </div>
         </div>
-    );
-}
-
-export function FieldError({message}: {message: string}) {
-    return (
-        <p className="flex items-center gap-1.5 text-sm text-cabai">
-            <WarningCircleIcon size={16} /> {message}
-        </p>
     );
 }
