@@ -1,122 +1,56 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { CartProvider } from "@/context/CartContext";
+import { AdminLayout } from "@/components/layout/AdminLayout";
+import { CashierLayout } from "@/components/layout/CashierLayout";
+import { RequireRole } from "@/components/shared/RequireRole";
+import { homePath } from "@/lib/routes";
+import { SessionExpiredDialog } from "@/components/shared/SessionExpiredDialog";
+import Login from "@/pages/Login";
+import Forbidden from "@/pages/Forbidden";
+import Dashboard from "@/pages/admin/Dashboard";
+import Menus from "@/pages/admin/Menus";
+import Categories from "@/pages/admin/Categories";
+import Transactions from "@/pages/admin/Transactions";
+import Cashiers from "@/pages/admin/Cashiers";
+import Pos from "@/pages/kasir/Pos";
+import History from "@/pages/kasir/History";
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+//halaman awal: arahkan sesuai peran
+function Home() {
+    const {user, checking} = useAuth();
+    if (checking) return null;
+    return <Navigate to={user ? homePath(user.role) : "/login"} replace />;
 }
 
-export default App
+export default function App() {
+    return (
+        <BrowserRouter>
+            <AuthProvider>
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/akses-ditolak" element={<Forbidden />} />
+
+                    <Route path="/admin" element={<RequireRole role="ADMIN"><AdminLayout /></RequireRole>}>
+                        <Route index element={<Dashboard />} />
+                        <Route path="menu" element={<Menus />} />
+                        <Route path="kategori" element={<Categories />} />
+                        <Route path="transaksi" element={<Transactions />} />
+                        <Route path="kasir" element={<Cashiers />} />
+                    </Route>
+
+                    <Route path="/kasir" element={<RequireRole role="CASHIER"><CartProvider><CashierLayout /></CartProvider></RequireRole>}>
+                        <Route index element={<Pos />} />
+                        <Route path="riwayat" element={<History />} />
+                    </Route>
+
+                    <Route path="*" element={<Home />} />
+                </Routes>
+                <SessionExpiredDialog />
+                <Toaster position="top-center" richColors />
+            </AuthProvider>
+        </BrowserRouter>
+    );
+}
